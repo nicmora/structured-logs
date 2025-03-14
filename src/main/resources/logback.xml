@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+    <!--Spring Logback Default-->
+    <springProfile name="default">
+        <include resource="org/springframework/boot/logging/logback/base.xml"/>
+    </springProfile>
+
+    <!--Logback with Logstash Default-->
+    <springProfile name="logstash-default">
+        <!--Console Appender-->
+        <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder class="net.logstash.logback.encoder.LogstashEncoder"/>
+        </appender>
+        <!--File Appender-->
+        <appender name="FILE" class="ch.qos.logback.core.FileAppender">
+            <file>logs/app.log</file>
+            <append>true</append>
+            <encoder class="net.logstash.logback.encoder.LogstashEncoder"/>
+        </appender>
+        <!--Root Logger-->
+        <root level="INFO">
+            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="FILE"/>
+        </root>
+    </springProfile>
+
+    <!--Logback with Custom Layout (JSON)-->
+    <springProfile name="logstash-custom">
+        <!--Console Appender-->
+        <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder class="ch.qos.logback.core.encoder.LayoutWrappingEncoder">
+                <layout class="pe.seek.structuredlogs.logging.CustomJsonLayout"/>
+            </encoder>
+        </appender>
+        <!--File Appender-->
+        <appender name="FILE" class="ch.qos.logback.core.FileAppender">
+            <file>logs/app.log</file>
+            <append>true</append>
+            <encoder class="ch.qos.logback.core.encoder.LayoutWrappingEncoder">
+                <layout class="pe.seek.structuredlogs.logging.CustomJsonLayout"/>
+            </encoder>
+        </appender>
+        <!--Root Logger-->
+        <root level="INFO">
+            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="FILE"/>
+        </root>
+    </springProfile>
+
+    <!--Logback + Logstash with Custom Pattern-->
+    <springProfile name="logstash-custom-pattern">
+        <!--Console Appender-->
+        <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+                <providers>
+                    <pattern>
+                        <pattern>
+                            { "timestamp": "%date", "message": "%message", "level": "%level", "event":"%M", "tag":"%c" }
+                        </pattern>
+                    </pattern>
+                </providers>
+            </encoder>
+        </appender>
+        <!--File Appender-->
+        <appender name="FILE" class="ch.qos.logback.core.FileAppender">
+            <file>logs/app.log</file>
+            <append>true</append>
+            <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+                <providers>
+                    <pattern>
+                        <pattern>
+                            { "timestamp": "%date", "message": "%message", "level": "%level", "event":"%M", "tag":"%c" }
+                        </pattern>
+                    </pattern>
+                </providers>
+            </encoder>
+        </appender>
+        <!--Root Logger-->
+        <root level="INFO">
+            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="FILE"/>
+        </root>
+    </springProfile>
+
+    <!--Logback + Logstash with Custom Providers-->
+    <springProfile name="logstash-custom-providers">
+        <!--Console Appender-->
+        <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+                <providers>
+                    <timestamp>
+                        <fieldName>timestamp</fieldName>
+                        <timeZone>UTC</timeZone>
+                        <pattern>yyyy-MM-dd HH:mm:ss.SSS</pattern>
+                    </timestamp>
+                    <message/>
+                    <logLevel/>
+                    <callerData>
+                        <classFieldName>tag</classFieldName>
+                        <methodFieldName>event</methodFieldName>
+                    </callerData>
+                </providers>
+            </encoder>
+        </appender>
+        <!--File Appender-->
+        <appender name="FILE" class="ch.qos.logback.core.FileAppender">
+            <file>logs/app.log</file>
+            <append>true</append>
+            <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+                <providers>
+                    <timestamp>
+                        <fieldName>timestamp</fieldName>
+                        <timeZone>UTC</timeZone>
+                        <pattern>yyyy-MM-dd HH:mm:ss.SSS</pattern>
+                    </timestamp>
+                    <message/>
+                    <logLevel/>
+                    <callerData>
+                        <classFieldName>tag</classFieldName>
+                        <methodFieldName>event</methodFieldName>
+                    </callerData>
+                </providers>
+            </encoder>
+        </appender>
+        <!--Root Logger-->
+        <root level="INFO">
+            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="FILE"/>
+        </root>
+    </springProfile>
+
+    <!--Logback with Logstash Default + Rabbitmq-->
+    <springProfile name="logstash-amqp">
+        <appender name="AMQP" class="org.springframework.amqp.rabbit.logback.AmqpAppender">
+            <encoder class="net.logstash.logback.encoder.LogstashEncoder"/>
+            <host>${RABBITMQ_HOST}</host>
+            <port>${RABBITMQ_PORT}</port>
+            <username>${RABBITMQ_USER}</username>
+            <password>${RABBITMQ_PASS}</password>
+            <applicationId>structured-logs</applicationId>
+            <exchangeName>structured-logs-exchange</exchangeName>
+            <exchangeType>queue</exchangeType>
+            <routingKeyPattern>logstash</routingKeyPattern>
+            <declareExchange>true</declareExchange>
+            <charset>UTF-8</charset>
+            <durable>true</durable>
+            <deliveryMode>PERSISTENT</deliveryMode>
+        </appender>
+
+        <root level="info">
+            <appender-ref ref="AMQP"/>
+        </root>
+    </springProfile>
+
+</configuration>
